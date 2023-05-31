@@ -1,8 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from models.user import User
 from models.room import RoomWarehouse, Room
-from models.question import Question
-import json, random
 from models.quiz import Quiz
 
 
@@ -12,16 +10,6 @@ router = APIRouter()
 async def get_rooms():
     global RoomWarehouse
     return {"Rooms Open": RoomWarehouse}
-
-@router.post("/create-room", status_code=200)
-async def create_room():
-    global RoomWarehouse
-    quiz = Quiz()
-    quiz.create_questions()
-    room = Room(
-        quiz=quiz
-    )
-    return room.dict()
 
 @router.delete("/delete-room/{room_id}")
 def delete_room(room_id: str):
