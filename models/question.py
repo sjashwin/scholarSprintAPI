@@ -1,28 +1,18 @@
 from pydantic import BaseModel, Field
 from typing import List, Optional
-from bson import ObjectId
+from mongo.PyObjectId import PyObjectId
 
-class PyObjectId(ObjectId):
-    @classmethod
-    def __get_validators__(cls):
-        yield cls.validate
-
-    @classmethod
-    def validate(cls, v):
-        if not ObjectId.is_valid(v):
-            raise ValueError('Invalid ObjectId')
-        return ObjectId(v)
-
-# Pydantic model
-class Question(BaseModel):
-    id: Optional[PyObjectId] = Field(alias='_id')
-    q: str
-    a: List[str]
-    d: List[int]
-    w: str
-    s: bool
-    c: str
+class Questions(BaseModel):
+    id: Optional[PyObjectId] = Field(default_factor=PyObjectId, alias='_id')
+    q: str = Field(...)
+    a: List[str] = Field(...)
+    d: List[int] = Field(...)
+    w: str = Field(...)
+    s: bool = Field(...)
+    c: str = Field(...)
+    t: int = Field(...)
 
     class Config:
+        allow_population_by_field_name = True
         arbitrary_types_allowed = True
-        json_encoders = {ObjectId: str}
+        json_encoders = {PyObjectId: str}
