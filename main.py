@@ -3,6 +3,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from models.quiz import Quiz
+from routes import ping
 # Get environment variables
 mongo_host = os.getenv("REACT_APP_MONGO_HOST")
 db_name = os.getenv("REACT_APP_DB")
@@ -25,6 +26,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(ping.router)
+
 @app.get("/quiz", response_model=Quiz)
 async def createQuiz():
     # Fetch the first document
@@ -40,7 +43,3 @@ async def createRoom():
     # Convert ObjectId to string and return the document
     quiz = Quiz(time=10, questions=first_document)
     return quiz
-
-@app.get("/ping")
-async def ping():
-    return {"message": "pong"}

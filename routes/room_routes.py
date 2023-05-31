@@ -1,7 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from models.user import User
-from models.room import RoomWarehouse, Room
-from models.quiz import Quiz
+from models.room import RoomWarehouse
 
 
 router = APIRouter()
