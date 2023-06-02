@@ -1,6 +1,5 @@
 from pydantic import BaseModel, Field
-from models.question import Questions, Optional
-from typing import List
+from typing import Optional
 from mongo.PyObjectId import PyObjectId
 
 class Quiz(BaseModel):

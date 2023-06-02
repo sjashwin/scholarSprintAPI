@@ -2,7 +2,7 @@ from pydantic import BaseModel, Field
 from typing import List, Optional
 from mongo.PyObjectId import PyObjectId
 
-class Questions(BaseModel):
+class Question(BaseModel):
     id: Optional[PyObjectId] = Field(default_factor=PyObjectId, alias='_id')
     q: str = Field(...)
     a: List[str] = Field(...)
