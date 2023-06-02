@@ -1,3 +1,5 @@
 .space
 .env
 Spacefile
+test/.pytest_cache/*
+venv/
