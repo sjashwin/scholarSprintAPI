@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import Optional
+from typing import Optional, List
 from mongo.PyObjectId import PyObjectId
 
 class Quiz(BaseModel):
@@ -9,6 +9,7 @@ class Quiz(BaseModel):
     size: int = Field(...)
     type: int = Field(...)
     name: str = Field(...)
+    domain: List[int] = Field(...)
 
     class Config:
         allow_population_by_field_name = True
