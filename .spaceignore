@@ -1,8 +1,8 @@
 .env
 .space
-.vscode
-*.txt
+/.vscode
+cookies.txt
 /venv
-.venv
+/.venv
 README.md
 /tests
