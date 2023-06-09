@@ -1,0 +1,8 @@
+.env
+.space
+.vscode
+*.txt
+/venv
+.venv
+README.md
+/tests
