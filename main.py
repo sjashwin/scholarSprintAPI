@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
-from routes import ping, room_routes, quiz_routes, question_routes, session_routes
+from routes import ping, quiz_routes, question_routes, session_routes
 
 # Create FastAPI instance
 app = FastAPI()
@@ -18,7 +18,6 @@ app.add_middleware(
 )
 
 app.include_router(ping.router)
-app.include_router(room_routes.router)
 app.include_router(quiz_routes.router)
 app.include_router(question_routes.router)
 app.include_router(session_routes.router)
