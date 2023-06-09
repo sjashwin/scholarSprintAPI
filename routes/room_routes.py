@@ -18,7 +18,6 @@ async def createRoom():
     return questions
 
 @router.post("/validate")
-async def validate_answer(data: dict):
+async def validate_answer(data: dict) -> bool:
     global questions
-    questions[data["index"]].a = data["answer"]
-    
+    return questions[data["index"]].a == data["answer"]
