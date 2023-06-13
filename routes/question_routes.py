@@ -4,6 +4,7 @@ from pydantic import BaseModel
 from models.question import Question
 from mongo.mongo import client
 import os
+import spacy
 
 class QuestionParam(BaseModel):
     size: Optional[int] = None
@@ -12,6 +13,8 @@ class QuestionParam(BaseModel):
 
 
 router = APIRouter()
+
+nlp = spacy.load("en_core_web_sm")
 
 @router.post("/questions", response_model=List[Question], status_code=200)
 async def questions(request: Request, params: QuestionParam=None):
@@ -81,7 +84,10 @@ async def validate(index: int, answer: str, request: Request):
     print(question)
 
     # Check the answer
-    if question["a"][0].lower() == answer.lower():
+    required = nlp(question["a"][0].lower())
+    given = nlp(answer.lower())
+    similarity_score = required.similarity(given)
+    if similarity_score > 0.85:
         user_session["correct_count"] += 1
         message = "Correct Answer"
     else:
@@ -120,3 +126,10 @@ async def submit(request: Request):
     request.session[username] = user_session
 
     return {"message": "Quiz submitted successfully", "correct_count": correct_count}
+
+@router.get("/check/{answer}")
+async def check(answer: str, required: str):
+    answer = nlp(answer)
+    expected = nlp(required)
+    similarity_score = answer.similarity(expected)
+    return {"similarity": similarity_score}
