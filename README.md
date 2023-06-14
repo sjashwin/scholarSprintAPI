@@ -28,6 +28,7 @@ Some Environment variables are required such as mongoDB information to connect t
 3. REACT_APP_COLLECTIONS
 4. REACT_APP_DB_QUIZ
 5. REACT_APP_QUIZ_COLLECTIONS
+6. REACT_APP_USERS_COLLECTIONS
 
 ## Getting Started
 
