@@ -5,10 +5,8 @@ from mongo.PyObjectId import PyObjectId
 class Question(BaseModel):
     id: Optional[PyObjectId] = Field(default_factor=PyObjectId, alias='_id')
     q: str = Field(...)
-    a: List[str] = Field(...)
+    a: str = Field(...)
     d: List[int] = Field(...)
-    w: str = Field(...)
-    s: bool = Field(...)
     c: str = Field(...)
     t: int = Field(...)
 

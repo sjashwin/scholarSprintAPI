@@ -3,10 +3,11 @@ from typing import List
 from models.quiz import Quiz
 import os
 from mongo.mongo import client
+from typing import Optional
 
 router = APIRouter()
 
-def get_quiz_from_db(n: int = 2):
+def get_quiz_from_db(n: int = 20):
     """
     Function to fetch n number of quiz questions from the database.
     
@@ -26,7 +27,7 @@ def get_quiz_from_db(n: int = 2):
     return quiz
 
 @router.get("/createquiz", response_model=List[Quiz], status_code=200)
-async def create_quiz():
+async def create_quiz(data: Optional[dict] = {}):
     """
     Endpoint to create a quiz.
     
@@ -37,4 +38,5 @@ async def create_quiz():
     list: A list of Quiz instances in JSON format.
     
     """
-    return await get_quiz_from_db()
+    size = data.get("size")
+    return await get_quiz_from_db(size)
