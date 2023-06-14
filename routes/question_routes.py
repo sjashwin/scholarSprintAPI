@@ -1,16 +1,11 @@
 from fastapi import APIRouter, Request, HTTPException, status
 from typing import List, Optional
-from pydantic import BaseModel
 from models.question import Question
 from mongo.mongo import client
 from bson import ObjectId
 import os
 import spacy
-
-class QuestionParam(BaseModel):
-    size: Optional[int] = None
-    subDomain: Optional[int] = None
-    domain: Optional[int] = None
+import random
 
 
 router = APIRouter()
@@ -18,7 +13,7 @@ router = APIRouter()
 nlp = spacy.load("en_core_web_sm")
 
 @router.post("/questions", response_model=List[Question], status_code=200)
-async def questions(request: Request, params: QuestionParam=None):
+async def questions(request: Request, quiz: Optional[dict] = {}):
     """
     Endpoint to get a list of questions.
 
@@ -33,8 +28,10 @@ async def questions(request: Request, params: QuestionParam=None):
     collection_name = os.getenv("REACT_APP_COLLECTIONS")
     db = client[db_name]
     collection = db[collection_name]
-    questions = await collection.find(params).to_list(2)
-
+    domain = quiz.get("domain") or [1, 2]
+    size = quiz.get("size") or 10
+    questions = await collection.find({"d": {"$all": domain}}).to_list(size)
+    random.shuffle(questions)
     # Convert _id field to string
     for question in questions:
         question["_id"] = str(question["_id"])
