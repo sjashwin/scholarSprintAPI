@@ -3,6 +3,7 @@ from typing import List, Optional
 from pydantic import BaseModel
 from models.question import Question
 from mongo.mongo import client
+from bson import ObjectId
 import os
 import spacy
 
@@ -44,55 +45,41 @@ async def questions(request: Request, params: QuestionParam=None):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No active session")
 
     # Get the user's session
-    user_session = request.session.get(username, {"questions": [], "correct_count": 0})
-
-    # Map the quiz to the username and add it to the user's session
-    user_session["questions"] = [q for q in questions]
+    user_session = request.session.get(username, {"correct_count": 0})
 
     # Save the user's session back to the main session
     request.session[username] = user_session
 
     return questions
 
-@router.post("/validate/{index}/{answer}")
-async def validate(index: int, answer: str, request: Request):
-    """
-    Endpoint to validate the answer for a given question.
-
-    Args:
-    index (int): The index of the question in the session.
-    answer (str): The answer provided by the user.
-
-    Returns:
-    dict: A dictionary with the message indicating whether the answer was correct and
-          the updated count of correct answers for the user.
-    """
-    # Get username from the session
+@router.post("/validate")
+async def validate(data: dict, request: Request):
     username = request.session.get("username")
     if not username:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No active session")
+    db_name = os.getenv("REACT_APP_DB")
+    db_collections = os.getenv("REACT_APP_COLLECTIONS")
+    db = client[db_name]
+    collection = db[db_collections]
+    document_id = data.get("document_id")
+    answer = data.get("answer")
 
     # Get the user's session
-    user_session = request.session.get(username, {"questions": [], "correct_count": 0})
+    if not ObjectId.is_valid(document_id):
+        raise HTTPException(status_code=400, detail="Invalid document ID")
 
-    # Validate question index
-    if index >= len(user_session["questions"]):
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid question index")
+    user_session = request.session.get(username, {"correct_count": 0})
 
-    # Retrieve the question from the user's session
-    question = user_session["questions"][index]
-    print(question)
-
-    # Check the answer
-    required = nlp(question["a"][0].lower())
-    given = nlp(answer.lower())
-    similarity_score = required.similarity(given)
-    if similarity_score > 0.85:
-        user_session["correct_count"] += 1
-        message = "Correct Answer"
-    else:
-        message = "Incorrect Answer"
-
+    existing_data = await collection.find_one({"_id": ObjectId(document_id)})
+    if existing_data:
+        correct_answer = nlp(existing_data.get("a").lower())
+        similarity_score = nlp(answer.lower()).similarity(correct_answer)
+        if similarity_score > 0.85:
+            user_session["correct_count"] += 1
+            message = "Correct Answer"
+        else:
+            message = "Incorrect Answer"
+            
     # Save the user's session back to the main session
     request.session[username] = user_session
 
