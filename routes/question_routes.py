@@ -30,7 +30,11 @@ async def questions(request: Request, quiz: Optional[dict] = {}):
     collection = db[collection_name]
     domain = quiz.get("domain") or [1, 2]
     size = quiz.get("size") or 10
-    questions = await collection.find({"d": {"$all": domain}}).to_list(size)
+    pipeline = [
+    {'$match': {'d': {'$eq': domain}}},
+    {'$sample': {'size': size}}
+    ]
+    questions = await collection.aggregate(pipeline).to_list(size)
     random.shuffle(questions)
     # Convert _id field to string
     for question in questions:
@@ -43,6 +47,7 @@ async def questions(request: Request, quiz: Optional[dict] = {}):
 
     # Get the user's session
     user_session = request.session.get(username, {"correct_count": 0})
+    user_session["correct_count"] = 0
 
     # Save the user's session back to the main session
     request.session[username] = user_session
@@ -99,14 +104,12 @@ async def submit(request: Request):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No active session")
 
     # Get the user's session
-    user_session = request.session.get(username, {"questions": [], "correct_count": 0})
+    user_session = request.session.get(username, {"correct_count": 0})
 
     # Extract the correct count from the user's session
     correct_count = user_session.get("correct_count", 0)
 
     # Clear the user's quiz data from the session after submission
-    user_session["questions"] = []
-    user_session["correct_count"] = 0
     request.session[username] = user_session
 
     return {"message": "Quiz submitted successfully", "correct_count": correct_count}
