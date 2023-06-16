@@ -48,7 +48,6 @@ async def anonymousLogin(request: Request, data: dict):
 
 @router.post("/login")
 async def login(request: Request, data: dict):
-    print(data)
     try:
         db_name=os.getenv("REACT_APP_DB_QUIZ")
         db_collection=os.getenv("REACT_APP_USERS_COLLECTIONS")
