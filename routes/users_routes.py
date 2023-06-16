@@ -62,9 +62,10 @@ async def login(request: Request, data: dict):
         userLanguage = data.get("language") or ""
         today=date.today().isoformat()
         existing_data = await collection.find_one({"e": userEmail})
+        existing_data["_id"] = str(existing_data["_id"])
         if existing_data:
             result_update = await collection.update_one({"e": userEmail}, {"$inc": {"v": 1}})
-            return { "status": status.HTTP_200_OK, "result": result_update.modified_count}
+            return { "status": status.HTTP_200_OK, "result": result_update.modified_count, "user": existing_data}
         else:
             userID=data.get("userID")
             data={
