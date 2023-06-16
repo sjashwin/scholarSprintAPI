@@ -49,7 +49,6 @@ async def anonymousLogin(request: Request, data: dict):
 @router.post("/login")
 async def login(request: Request, data: dict):
     print(data)
-    print(os.getenv("REACT_APP_DB_QUIZ"), os.getenv("REACT_APP_USERS_COLLECTIONS"))
     try:
         db_name=os.getenv("REACT_APP_DB_QUIZ")
         db_collection=os.getenv("REACT_APP_USERS_COLLECTIONS")
@@ -60,10 +59,11 @@ async def login(request: Request, data: dict):
         userPhone = data.get("phnone") or ""
         userCountry = data.get("country") or ""
         userLanguage = data.get("language") or ""
+        username=data.get("name")
         today=date.today().isoformat()
         existing_data = await collection.find_one({"e": userEmail})
-        existing_data["_id"] = str(existing_data["_id"])
         if existing_data:
+            existing_data["_id"] = str(existing_data["_id"])
             result_update = await collection.update_one({"e": userEmail}, {"$inc": {"v": 1}})
             return { "status": status.HTTP_200_OK, "result": result_update.modified_count, "user": existing_data}
         else:
@@ -77,12 +77,13 @@ async def login(request: Request, data: dict):
                 "v": 1,
                 "p": userPhone,
                 "e": userEmail,
+                "n": username,
                 "email_v": False,
                 "phone_v": False,
                 "r": False,
             }
             result = await collection.insert_one(data)
-        return { "status": status.HTTP_200_OK, "result": result}
+        return { "status": status.HTTP_200_OK, "result": result.modified_count}
     except Exception as e:
         print(str(e))
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
