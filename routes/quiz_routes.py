@@ -7,7 +7,12 @@ from typing import Optional
 
 router = APIRouter()
 
-def get_quiz_from_db(n: int = 20):
+async def fetch_data(query, collection, n):
+    pipeline = [{'$match': query}, {'$sample': {'size': n}}]
+    async for doc in collection.aggregate(pipeline):
+        yield doc
+
+async def get_quiz_from_db(n: int = 10):
     """
     Function to fetch n number of quiz questions from the database.
     
@@ -22,8 +27,15 @@ def get_quiz_from_db(n: int = 20):
     collection_name = os.getenv("REACT_APP_QUIZ_COLLECTIONS")
     db = client[db_name]
     collection = db[collection_name]
-    quiz = collection.find().to_list(n)
-    
+    quiz = []
+    for i in range(1, 9):
+        pipeline = [{'$match': {"domain.0": i}}, {'$sample': {'size': 10}}]
+        doc = await collection.aggregate(pipeline).to_list(n)
+        quiz.extend(doc)
+    pipeline = [{'$match': {"domain.2": 9}}, {'$sample': {'size': 10}}]
+    doc = await collection.aggregate(pipeline).to_list(n)
+    quiz.extend(doc)
+
     return quiz
 
 @router.get("/createquiz", response_model=List[Quiz], status_code=200)
