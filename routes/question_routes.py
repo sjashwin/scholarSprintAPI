@@ -31,7 +31,7 @@ async def questions(request: Request, quiz: Optional[dict] = {}):
     domain = quiz.get("domain") or [1, 2]
     size = quiz.get("size") or 10
     pipeline = [
-    {'$match': {'d': {'$eq': domain}}},
+    {'$match': {'d': {'$eq': domain[:2]}}},
     {'$sample': {'size': size}}
     ]
     if quiz.get("s"):
@@ -41,7 +41,6 @@ async def questions(request: Request, quiz: Optional[dict] = {}):
     # Convert _id field to string
     for question in questions:
         question["_id"] = str(question["_id"])
-        
     # Get username from the session
     username = request.session.get("username")
     if not username:
