@@ -38,6 +38,11 @@ async def questions(request: Request, quiz: Optional[dict] = {}):
         pipeline[0]["$match"].update({'$text': {'$search': f'\"{quiz.get("q")}\"'}})
     questions = await collection.aggregate(pipeline).to_list(size)
     random.shuffle(questions)
+    print(questions, quiz.get('q'))
+    if len(questions) == 0:
+        pipeline[0]["$match"].update({'$text': {'$search': f'{quiz.get("q")}'}})
+    questions = await collection.aggregate(pipeline).to_list(size)
+    random.shuffle(questions)
     # Convert _id field to string
     for question in questions:
         question["_id"] = str(question["_id"])
