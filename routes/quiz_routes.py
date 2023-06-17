@@ -52,3 +52,18 @@ async def create_quiz(data: Optional[dict] = {}):
     """
     size = data.get("size")
     return await get_quiz_from_db(size)
+
+@router.post('/searchQuiz', response_model=List[Quiz], status_code=200)
+async def searchQuiz(data: dict):
+    db_name = os.getenv("REACT_APP_DB_QUIZ")
+    collection_name = os.getenv("REACT_APP_QUIZ_COLLECTIONS")
+    db = client[db_name]
+    collection = db[collection_name]
+    phrase = str(data.get("phrase"))
+    print(phrase)
+    if len(phrase) == 0:
+        return await get_quiz_from_db()
+    quiz = []
+    pipeline = { "$text": { "$search": phrase}}
+    quiz = await collection.find(pipeline).to_list(None)
+    return quiz
