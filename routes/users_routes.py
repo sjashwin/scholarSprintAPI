@@ -22,14 +22,14 @@ async def anonymousLogin(request: Request, data: dict):
         data = { 
             "ip": ip_address, 
             "id": userID, 
-            "date": today,
-            "country": "IN",
-            "visited": 1,
-            "phone": userPhone,
-            "email": userEmail,
+            "d": today,
+            "c": "IN",
+            "v": 1,
+            "p": userPhone,
+            "e": userEmail,
             "email_v": False,
             "phone_v": False,
-            "registered": False,
+            "r": False,
         }
         existing_data = await collection.find_one({"id": userID})
         if existing_data:
@@ -55,7 +55,7 @@ async def login(request: Request, data: dict):
         collection=db[db_collection]
         ip_address=request.client.host
         userEmail = data.get("email") or ""
-        userPhone = data.get("phnone") or ""
+        userPhone = data.get("phone") or ""
         userCountry = data.get("country") or ""
         userLanguage = data.get("language") or ""
         username=data.get("name")
@@ -79,7 +79,7 @@ async def login(request: Request, data: dict):
                 "n": username,
                 "email_v": False,
                 "phone_v": False,
-                "r": False,
+                "r": True,
             }
             result = await collection.insert_one(data)
         return { "status": status.HTTP_200_OK, "result": result.modified_count}

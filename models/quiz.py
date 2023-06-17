@@ -10,6 +10,8 @@ class Quiz(BaseModel):
     type: int = Field(...)
     name: str = Field(...)
     domain: List[int] = Field(...)
+    s: Optional[bool] = Field(...)
+    q: Optional[str] = Field(...)
 
     class Config:
         allow_population_by_field_name = True
