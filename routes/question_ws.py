@@ -42,7 +42,8 @@ async def websocket_endpoint(websocket: WebSocket, user_id: str):
             if result and questions[index]["result"] != 1:
                 questions[index]["result"] = 1
                 score += 1
-            else:
+            elif not result and question[index]["result"] == 1:
+                score -= 1
                 questions[index]["result"] = 0
             if data["type"] == "next" and index<len(questions):
                 index += 1
