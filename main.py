@@ -43,8 +43,6 @@ app.include_router(linkedin_routes.router)
 app.include_router(creator.router)
 app.include_router(question_ws.router)
 
-logging.info("Server Started Successfully.")
-
 #@app.on_event("startup")
 #async def startup_event():
-#    asyncio.create_task(QuizAdd_watcher())
+#git    asyncio.create_task(QuizAdd_watcher())
