@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Request, HTTPException, status
 from typing import List, Optional
 from models.question import Question
-from mongo.mongo import client
+from mongo.mongo import QUESTION_COLLECTION
 from bson import ObjectId
 import os
 import spacy
@@ -24,10 +24,6 @@ async def questions(request: Request, quiz: Optional[dict] = {}):
     Returns:
     List[Question]: a list of questions.
     """
-    db_name = os.getenv("REACT_APP_DB")
-    collection_name = os.getenv("REACT_APP_COLLECTIONS")
-    db = client[db_name]
-    collection = db[collection_name]
     domain = quiz.get("domain") or [1, 2]
     size = quiz.get("size") or 10
     pipeline = [
@@ -36,12 +32,12 @@ async def questions(request: Request, quiz: Optional[dict] = {}):
     ]
     if quiz.get("s"):
         pipeline[0]["$match"].update({'$text': {'$search': f'\"{quiz.get("q")}\"'}})
-    questions = await collection.aggregate(pipeline).to_list(size)
+    questions = await QUESTION_COLLECTION.aggregate(pipeline).to_list(size)
     random.shuffle(questions)
     print(questions, quiz.get('q'))
     if len(questions) == 0:
         pipeline[0]["$match"].update({'$text': {'$search': f'{quiz.get("q")}'}})
-    questions = await collection.aggregate(pipeline).to_list(size)
+    questions = await QUESTION_COLLECTION.aggregate(pipeline).to_list(size)
     random.shuffle(questions)
     # Convert _id field to string
     for question in questions:
@@ -65,10 +61,6 @@ async def validate(data: dict, request: Request):
     username = request.session.get("username")
     if not username:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No active session")
-    db_name = os.getenv("REACT_APP_DB")
-    db_collections = os.getenv("REACT_APP_COLLECTIONS")
-    db = client[db_name]
-    collection = db[db_collections]
     document_id = data.get("document_id")
     answer = data.get("answer")
 
@@ -78,7 +70,7 @@ async def validate(data: dict, request: Request):
 
     user_session = request.session.get(username, {"correct_count": 0})
 
-    existing_data = await collection.find_one({"_id": ObjectId(document_id)})
+    existing_data = await QUESTION_COLLECTION.find_one({"_id": ObjectId(document_id)})
     if existing_data:
         correct_answer = nlp(existing_data.get("a").lower())
         similarity_score = nlp(answer.lower()).similarity(correct_answer)

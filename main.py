@@ -2,6 +2,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 from routes import ping, quiz_routes, question_routes, session_routes, users_routes, feedback_routes
+from watchers.newQuiz_watcher import QuizAdd_watcher
+import asyncio
 
 # Create FastAPI instance
 app = FastAPI()
@@ -23,3 +25,7 @@ app.include_router(question_routes.router)
 app.include_router(session_routes.router)
 app.include_router(users_routes.router)
 app.include_router(feedback_routes.router)
+
+@app.on_event("startup")
+async def startup_event():
+    asyncio.create_task(QuizAdd_watcher())

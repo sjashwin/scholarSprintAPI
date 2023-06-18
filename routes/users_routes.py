@@ -1,17 +1,13 @@
 from fastapi import APIRouter, Request, HTTPException, status
 from datetime import date
 import os
-from mongo.mongo import client
+from mongo.mongo import USER_COLLECTION
 
 router = APIRouter()
 
 @router.post("/anonymousLogin")
 async def anonymousLogin(request: Request, data: dict):
     try:
-        db_name = os.getenv("REACT_APP_DB_QUIZ")
-        db_collections = os.getenv("REACT_APP_USERS_COLLECTIONS")
-        db=client[db_name]
-        collection = db[db_collections]
         ip_address = request.client.host
         userID = data.get("userID")
         if userID is None or userID == "":
@@ -31,17 +27,17 @@ async def anonymousLogin(request: Request, data: dict):
             "phone_v": False,
             "r": False,
         }
-        existing_data = await collection.find_one({"id": userID})
+        existing_data = await USER_COLLECTION.find_one({"id": userID})
         if existing_data:
             # Increase the count of visited
             visited_count = existing_data.get("visited", 0)
             data["visited"] = visited_count + 1
             # Update the existing data
-            collection.update_one({"id": userID}, {"$set": data})
+            USER_COLLECTION.update_one({"id": userID}, {"$set": data})
         else:
             data["visited"] = 1
             # Insert the data into MongoDB collection
-            collection.insert_one(data)
+            USER_COLLECTION.insert_one(data)
         return {"status": status.HTTP_200_OK}
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
@@ -49,10 +45,6 @@ async def anonymousLogin(request: Request, data: dict):
 @router.post("/login")
 async def login(request: Request, data: dict):
     try:
-        db_name=os.getenv("REACT_APP_DB_QUIZ")
-        db_collection=os.getenv("REACT_APP_USERS_COLLECTIONS")
-        db=client[db_name]
-        collection=db[db_collection]
         ip_address=request.client.host
         userEmail = data.get("email") or ""
         userPhone = data.get("phone") or ""
@@ -60,10 +52,10 @@ async def login(request: Request, data: dict):
         userLanguage = data.get("language") or ""
         username=data.get("name")
         today=date.today().isoformat()
-        existing_data = await collection.find_one({"e": userEmail})
+        existing_data = await USER_COLLECTION.find_one({"e": userEmail})
         if existing_data:
             existing_data["_id"] = str(existing_data["_id"])
-            result_update = await collection.update_one({"e": userEmail}, {"$inc": {"v": 1}})
+            result_update = await USER_COLLECTION.update_one({"e": userEmail}, {"$inc": {"v": 1}})
             return { "status": status.HTTP_200_OK, "result": result_update.modified_count, "user": existing_data}
         else:
             userID=data.get("userID")
@@ -81,7 +73,7 @@ async def login(request: Request, data: dict):
                 "phone_v": False,
                 "r": True,
             }
-            result = await collection.insert_one(data)
+            result = await USER_COLLECTION.insert_one(data)
         return { "status": status.HTTP_200_OK, "result": result.modified_count}
     except Exception as e:
         print(str(e))
@@ -91,18 +83,14 @@ async def login(request: Request, data: dict):
 async def check_ip(request: Request):
     try:
         ip_address = request.client.host
-        db_name = os.getenv("REACT_APP_DB_QUIZ")
-        db_collections = os.getenv("REACT_APP_USERS_COLLECTIONS")
-        db = client[db_name]
-        collection = db[db_collections]
 
-        existing_data = await collection.find_one({"ip": ip_address})
+        existing_data = await USER_COLLECTION.find_one({"ip": ip_address})
         if existing_data:
             # Update the visited count
             visited_count = existing_data.get("visited", 0) + 1
             existing_data["visited"] = visited_count
             # Update the existing data in the collection
-            await collection.replace_one({"ip": ip_address}, existing_data)
+            await USER_COLLECTION.replace_one({"ip": ip_address}, existing_data)
             return existing_data
         else:
             return {}
