@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Request, HTTPException, status
 from datetime import date
-import os
+import os, json
 from mongo.mongo import USER_COLLECTION
 
 router = APIRouter()
@@ -45,7 +45,6 @@ async def anonymousLogin(request: Request, data: dict):
 @router.post("/login")
 async def login(request: Request, data: dict):
     try:
-        ip_address=request.client.host
         userEmail = data.get("email") or ""
         userPhone = data.get("phone") or ""
         userCountry = data.get("country") or ""
@@ -59,8 +58,7 @@ async def login(request: Request, data: dict):
             return { "status": status.HTTP_200_OK, "result": result_update.modified_count, "user": existing_data}
         else:
             userID=data.get("userID")
-            data={
-                "ip": ip_address, 
+            userInfo={
                 "id": userID, 
                 "d": today,
                 "c": userCountry,
@@ -71,12 +69,12 @@ async def login(request: Request, data: dict):
                 "n": username,
                 "email_v": False,
                 "phone_v": False,
-                "r": True,
             }
-            result = await USER_COLLECTION.insert_one(data)
-        return { "status": status.HTTP_200_OK, "result": result.modified_count}
+            result = await USER_COLLECTION.insert_one(userInfo)
+            userInfo["_id"] = str(userInfo["_id"])
+            return { "status": status.HTTP_200_OK, "result": str(result.inserted_id), "user": userInfo }
     except Exception as e:
-        print(str(e))
+        print("Error", str(e))
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
 @router.get("/checkIP")

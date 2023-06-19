@@ -26,6 +26,6 @@ app.include_router(session_routes.router)
 app.include_router(users_routes.router)
 app.include_router(feedback_routes.router)
 
-@app.on_event("startup")
-async def startup_event():
-    asyncio.create_task(QuizAdd_watcher())
+#@app.on_event("startup")
+#async def startup_event():
+#    asyncio.create_task(QuizAdd_watcher())
