@@ -3,11 +3,12 @@ from typing import List, Optional
 
 from pydantic import BaseModel, validator
 from models.question import Question
-from mongo.mongo import QUESTION_COLLECTION
+from mongo.mongo import QUESTION_COLLECTION, PROGRESS_COLLECTION
 from bson import ObjectId
 from typing import Dict
 import spacy
 import random
+import datetime
 
 
 router = APIRouter()
@@ -19,6 +20,7 @@ class UserStats(BaseModel):
     questions: List[Question]
     result: List[str] = []
     score: int = 0
+    qid: str
     
     @validator('result', pre=True)
     def make_result_set(cls, value):
@@ -65,7 +67,7 @@ async def questions(user: str, quiz: Optional[dict] = {}):
         pipeline[0]["$match"].update({'$text': {'$search': f'{quiz.get("q")}'}})
     questions: List[Question] = await QUESTION_COLLECTION.aggregate(pipeline).to_list(size)
     random.shuffle(questions)
-    StatHolder[user] = UserStats(name=user, questions=questions)
+    StatHolder[user] = UserStats(name=user, questions=questions, qid=quiz["_id"])
     # Convert _id field to string
 
     for question in questions:
@@ -118,6 +120,22 @@ async def submit(user: str):
     # Get username from the session
     if user not in StatHolder:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Quiz has not started or is not available")
+    print(StatHolder[user].result)
+    quID = [{str(question): 1} for question in StatHolder[user].result]
+    stats = {
+        "t": datetime.datetime.now().isoformat(),
+        "d": datetime.date.today().isoformat(),
+        "qID": StatHolder[user].qid,
+        "quID": quID,
+        "r": StatHolder[user].score
+    }
+    print(stats)
+
+    result = await PROGRESS_COLLECTION.update_one(
+        {"uid": user},
+        {"$addToSet": {"progress": stats}}
+    )
+    print(result)
     score = StatHolder[user].score
     result = StatHolder[user].result
     questions = StatHolder[user].questions
