@@ -38,12 +38,25 @@ async def questions(user: str, quiz: Optional[dict] = {}):
     Returns:
     List[Question]: a list of questions.
     """
+    print(quiz)
     domain = quiz.get("domain") or [1, 2]
     size = quiz.get("size") or 10
-    pipeline = [
-    {'$match': {'d': {'$eq': domain[:2]}}},
-    {'$sample': {'size': size}}
-    ]
+    try:
+        if domain[2] == 9:
+            pipeline = [
+                {'$match': {'d': {'$eq': domain[:2]}}},
+                {'$sample': {'size': size}}
+            ]
+        elif domain[2] == 8:
+            pipeline = [
+                {'$match': {'d': {'$eq': domain}}},
+                {'$sample': {'size': size}}
+            ]
+    except IndexError as e:
+        pipeline = [
+                {'$match': {'d': {'$eq': domain}}},
+                {'$sample': {'size': size}}
+            ]
     if quiz.get("s"):
         pipeline[0]["$match"].update({'$text': {'$search': f'\"{quiz.get("q")}\"'}})
     questions = await QUESTION_COLLECTION.aggregate(pipeline).to_list(size)

@@ -14,7 +14,7 @@ app.add_middleware(SessionMiddleware, secret_key="my_secret_key", same_site="non
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://localhost:3000", "http://localhost:3000", "https://scholar-sprint.vercel.app"],  # Replace with the appropriate frontend URL
+    allow_origins=["https://localhost:3000", "http://localhost:3000", "https://scholar-sprint.vercel.app", "https://www.scholarsprint.app"],  # Replace with the appropriate frontend URL
     allow_methods=["*"],
     allow_credentials=True,
     allow_headers=["*"],
