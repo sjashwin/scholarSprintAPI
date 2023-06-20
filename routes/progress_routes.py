@@ -43,8 +43,11 @@ async def read_progress(userID: Optional[str] = None):
     else:
         doc = await PROGRESS_COLLECTION.find_one({"uid": userID})
         doc["_id"] = str(doc["_id"])
-        quizAttempted = len(doc["progress"])
+        quizAttempted = set([quiz['qID'] for quiz in doc["progress"] if 'qID' in quiz])
         score = 0
         for quiz in doc["progress"]:
-            score = sum(1 for dictionary in quiz["quID"] if 1 in dictionary.values())
-    return {"attempted": quizAttempted, "overall_score": score}
+            try:
+                score = sum(1 for dictionary in quiz["quID"] if 1 in dictionary.values())
+            except KeyError as e:
+                print(e)
+    return {"attempted": len(quizAttempted), "score": score}
