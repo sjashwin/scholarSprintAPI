@@ -69,9 +69,9 @@ async def login(request: Request, data: dict):
                 "email_v": False,
                 "phone_v": False,
             }
+            result = await progress(userID)
             result = await USER_COLLECTION.insert_one(userInfo)
             userInfo["_id"] = str(userInfo["_id"])
-            result = await progress(userInfo["_id"])
             return { "status": status.HTTP_200_OK, "result": str(result.inserted_id), "user": userInfo }
     except Exception as e:
         print("Error", str(e))
@@ -102,4 +102,4 @@ async def progress(userID):
         "progress": [{}]
     }
     result = await PROGRESS_COLLECTION.insert_one(data)
-    print(result)
+    return str(result.inserted_id)
