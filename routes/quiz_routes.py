@@ -28,7 +28,7 @@ async def get_quiz_from_db(n: int = 10):
         pipeline = [{'$match': {"domain.0": i}}, {'$sample': {'size': 10}}]
         doc = await QUIZ_COLLECTION.aggregate(pipeline).to_list(n)
         quiz.extend(doc)
-    pipeline = [{'$match': {"$or": [{"domain.2": 9}, {"domain.2": 8}]}}, {'$sample': {'size': 10}}]
+    pipeline = [{'$match': {"$or": [{"domain.2": 9}, {"domain.2": 8}]}}, {'$sample': {'size': 30}}]
     doc = await QUIZ_COLLECTION.aggregate(pipeline).to_list(n)
     quiz.extend(doc)
 
