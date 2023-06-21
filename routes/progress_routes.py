@@ -40,6 +40,7 @@ async def read_progress(userID: Optional[str] = None):
         doc = await PROGRESS_COLLECTION.find({}).to_list(None)
         for progress in doc:
             progress["_id"] = str(progress["_id"])
+        return doc
     else:
         doc = await PROGRESS_COLLECTION.find_one({"uid": userID})
         doc["_id"] = str(doc["_id"])
