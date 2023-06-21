@@ -2,8 +2,9 @@ from fastapi import APIRouter
 from typing import List
 from models.quiz import Quiz
 import os
-from mongo.mongo import QUIZ_COLLECTION
+from mongo.mongo import QUIZ_COLLECTION, QUESTION_COLLECTION
 from typing import Optional
+from models.question import Question
 
 router = APIRouter()
 
@@ -51,6 +52,12 @@ async def create_quiz(data: Optional[dict] = {}):
     """
     size = data.get("size")
     return await get_quiz_from_db(size)
+
+@router.post("/getDomain", response_model=List[Question], status_code=200)
+async def getQuiz(domain: list):
+    pipeline = { "d": domain }
+    quiz = await QUESTION_COLLECTION.find(pipeline).to_list(None)
+    return quiz
 
 @router.post('/searchQuiz', response_model=List[Quiz], status_code=200)
 async def searchQuiz(data: dict):
