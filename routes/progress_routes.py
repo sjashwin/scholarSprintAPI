@@ -50,7 +50,6 @@ async def read_progress(userID: Optional[str] = None):
         for quiz in doc["progress"]:
             try:
                 score = score + sum(value for dictionary in quiz["quID"] for value in dictionary.values())
-                # questionsAttempted.append(quiz["quID"])
                 questionsAttempted.append(len(set(key for dictionary in quiz["quID"] for key in dictionary.keys())))
                 print("questions", questionsAttempted)
             except KeyError as e:
