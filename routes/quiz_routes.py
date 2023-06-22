@@ -53,6 +53,12 @@ async def create_quiz(data: Optional[dict] = {}):
     size = data.get("size")
     return await get_quiz_from_db(size)
 
+@router.get("/preps", response_model=List[Quiz], status_code=200)
+async def preps():
+    pipeline = [{"$match": {"domain.2": 8}}]
+    doc = await QUIZ_COLLECTION.aggregate(pipeline).to_list(None)
+    return doc
+
 @router.post("/getDomain", response_model=List[Question], status_code=200)
 async def getQuiz(domain: list):
     pipeline = { "d": domain }
