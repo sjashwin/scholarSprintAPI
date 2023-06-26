@@ -1,10 +1,8 @@
 from fastapi import APIRouter
 from typing import List
 from models.quiz import Quiz
-import os
-from mongo.mongo import QUIZ_COLLECTION, QUESTION_COLLECTION
+from mongo.mongo import QUIZ_COLLECTION
 from typing import Optional
-from models.question import Question
 
 router = APIRouter()
 
