@@ -59,11 +59,11 @@ async def preps():
     doc = await QUIZ_COLLECTION.aggregate(pipeline).to_list(None)
     return doc
 
-@router.post("/getDomain/{domain}", response_model=List[Question], status_code=200)
+@router.post("/getDomain/{domain}", response_model=List[Quiz], status_code=200)
 async def getQuiz(domain: int): # 1 -> Natural Sciences
     print(domain)
-    pipeline = {"d.0": domain}
-    quiz = await QUESTION_COLLECTION.find(pipeline).to_list(None)
+    pipeline = {"domain.0": domain}
+    quiz = await QUIZ_COLLECTION.find(pipeline).to_list(None)
     return quiz
 
 @router.post('/searchQuiz', response_model=List[Quiz], status_code=200)
