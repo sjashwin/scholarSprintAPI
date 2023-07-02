@@ -9,6 +9,7 @@ from typing import Dict
 import spacy
 import random
 import datetime
+import logging
 
 
 router = APIRouter()
@@ -30,17 +31,6 @@ StatHolder: Dict[str, UserStats] = {}
 
 @router.post("/questions/{user}", response_model=List[Question], status_code=200)
 async def questions(user: str, quiz: Optional[dict] = {}):
-    """
-    Endpoint to get a list of questions.
-
-    Args:
-    request (Request): the request instance.
-    params (QuestionParam): the question parameters to filter the questions. 
-
-    Returns:
-    List[Question]: a list of questions.
-    """
-    print(quiz)
     domain = quiz.get("domain") or [1, 2]
     size = quiz.get("size") or 10
     try:
@@ -59,6 +49,7 @@ async def questions(user: str, quiz: Optional[dict] = {}):
                 {'$match': {'d': {'$eq': domain}}},
                 {'$sample': {'size': size}}
             ]
+        logging.error(f"{e}")
     if quiz.get("s"):
         pipeline[0]["$match"].update({'$text': {'$search': f'\"{quiz.get("q")}\"'}})
     questions = await QUESTION_COLLECTION.aggregate(pipeline).to_list(size)
@@ -74,6 +65,7 @@ async def questions(user: str, quiz: Optional[dict] = {}):
         question["a"] = ""
         question["_id"] = str(question["_id"])
 
+    logging.info(f"Total Questions Available {len(questions)}")
     return questions
 
 @router.post("/validate/{user}")
@@ -85,6 +77,7 @@ async def validate(user: str, data: dict):
     
     # Get the user's session
     if not ObjectId.is_valid(document_id):
+        logging.error(f"{e}")
         raise HTTPException(status_code=400, detail="Invalid document ID")
 
     for question in StatHolder[user].questions:
@@ -101,8 +94,9 @@ async def validate(user: str, data: dict):
                         StatHolder[user].result.remove(question.id)
                         StatHolder[user].score = len(StatHolder[user].result)
                     except ValueError as e:
+                        logging.error(F"{e}")
                         pass
-    print(StatHolder[user].score, StatHolder[user].result)
+    logging.debug(f"Score: {StatHolder[user].score}, Result {StatHolder[user].result}")
     return {"score": StatHolder[user].score}
 
 
@@ -120,7 +114,6 @@ async def submit(user: str):
     # Get username from the session
     if user not in StatHolder:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Quiz has not started or is not available")
-    print(StatHolder[user].result)
     quID = [{str(question): 1} for question in StatHolder[user].result]
     stats = {
         "t": datetime.datetime.now().isoformat(),
@@ -129,18 +122,16 @@ async def submit(user: str):
         "quID": quID,
         "r": StatHolder[user].score
     }
-    print(stats)
 
     result = await PROGRESS_COLLECTION.update_one(
         {"uid": user},
         {"$addToSet": {"progress": stats}}
     )
-    print(result)
     score = StatHolder[user].score
     result = StatHolder[user].result
     questions = StatHolder[user].questions
     del StatHolder[user]
-
+    logging.debug("Removed {user} StatHolder")
     return {"message": "Quiz submitted successfully", "score": score, "result": result, "questions": questions}
 
 @router.get("/check/{answer}")

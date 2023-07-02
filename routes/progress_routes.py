@@ -3,6 +3,7 @@ from mongo.PyObjectId import PyObjectId
 from fastapi import APIRouter
 from pydantic import BaseModel, Field
 from typing import List, Optional
+import logging
 
 router = APIRouter()
 
@@ -51,7 +52,6 @@ async def read_progress(userID: Optional[str] = None):
             try:
                 score = score + sum(value for dictionary in quiz["quID"] for value in dictionary.values())
                 questionsAttempted.append(len(set(key for dictionary in quiz["quID"] for key in dictionary.keys())))
-                print("questions", questionsAttempted)
             except KeyError as e:
-                print("error", e)
+                logging(f"{e}")
     return {"attempted": len(quizAttempted), "score": score, "questionAttempted": sum(questionsAttempted)}
