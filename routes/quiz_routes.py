@@ -3,6 +3,7 @@ from typing import List
 from models.quiz import Quiz
 from mongo.mongo import QUIZ_COLLECTION
 from typing import Optional
+import logging
 
 router = APIRouter()
 
@@ -29,18 +30,21 @@ async def get_quiz_from_db(n: int = 10):
 @router.get("/createquiz", response_model=List[Quiz], status_code=200)
 async def create_quiz(data: Optional[dict] = {}):
     size = data.get("size")
+    logging.debug(f"Fetching Quizzes")
     return await get_quiz_from_db(size)
 
 @router.get("/preps", response_model=List[Quiz], status_code=200)
 async def preps():
     pipeline = [{"$match": {"domain.2": 8}}]
     doc = await QUIZ_COLLECTION.aggregate(pipeline).to_list(None)
+    logging.debug(f"Getting Exam Preps Quiz.")
     return doc
 
 @router.post("/getDomain/{domain}", response_model=List[Quiz], status_code=200)
 async def getQuiz(domain: int): # 1 -> Natural Sciences
     pipeline = {"domain.0": domain}
     quiz = await QUIZ_COLLECTION.find(pipeline).to_list(None)
+    logging.debug(f"Getting {domain} Quizzes")
     return quiz
 
 @router.post('/searchQuiz', response_model=List[Quiz], status_code=200)
@@ -48,9 +52,10 @@ async def search_quiz(data: dict):
     phrase = str(data.get("phrase", ""))
     
     if not phrase:
+        logging.info("Empty Search Request.")
         return await get_quiz_from_db()
     
     pipeline = [{"$match": {"$text": {"$search": phrase}}}]
     quiz = await QUIZ_COLLECTION.aggregate(pipeline).to_list(None)
-    
+    logging.info(f"with search phrase {phrase}")
     return quiz

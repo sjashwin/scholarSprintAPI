@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Request, HTTPException, status
 from datetime import date
 from mongo.mongo import USER_COLLECTION, PROGRESS_COLLECTION
+import logging
 
 router = APIRouter()
 
@@ -54,6 +55,7 @@ async def login(request: Request, data: dict):
         if existing_data:
             existing_data["_id"] = str(existing_data["_id"])
             result_update = await USER_COLLECTION.update_one({"e": userEmail}, {"$inc": {"v": 1}})
+            logging.info(f"User {username} Logged In Successfully")
             return { "status": status.HTTP_200_OK, "result": result_update.modified_count, "user": existing_data}
         else:
             userID=data.get("userID")
@@ -72,9 +74,10 @@ async def login(request: Request, data: dict):
             result = await progress(userID)
             result = await USER_COLLECTION.insert_one(userInfo)
             userInfo["_id"] = str(userInfo["_id"])
+            logging.info(f"New User {username} Logged In Successfully")
             return { "status": status.HTTP_200_OK, "result": str(result.inserted_id), "user": userInfo }
     except Exception as e:
-        print("Error", str(e))
+        logging.error(f"{e}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
 @router.get("/checkIP")

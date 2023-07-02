@@ -5,6 +5,15 @@ from routes import invite_routes, ping, quiz_routes, question_routes, session_ro
 from routes import progress_routes
 from watchers.newQuiz_watcher import QuizAdd_watcher
 import asyncio
+import logging
+
+logging.basicConfig(
+    level=logging.DEBUG,
+    filename="app.log",
+    filemode="a",
+    format="%(asctime)s %(levelname)s %(funcName)s: %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S"
+)
 
 # Create FastAPI instance
 app = FastAPI()
@@ -28,6 +37,8 @@ app.include_router(users_routes.router)
 app.include_router(progress_routes.router)
 app.include_router(feedback_routes.router)
 app.include_router(invite_routes.router)
+
+logging.info("Server Started Successfully.")
 
 #@app.on_event("startup")
 #async def startup_event():
