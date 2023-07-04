@@ -58,5 +58,5 @@ async def search_quiz(data: dict):
     
     pipeline = [{"$match": {"$text": {"$search": phrase}}}]
     quiz = await QUIZ_COLLECTION.aggregate(pipeline).to_list(None)
-    logging.info(f"with search phrase {phrase}")
+    logging.info(f"with search phrase {phrase} returned {len(quiz)}")
     return quiz

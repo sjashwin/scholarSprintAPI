@@ -1,11 +1,11 @@
 from pydantic import BaseModel, Field
-from typing import List, Optional
+from typing import List, Optional, Union
 from mongo.PyObjectId import PyObjectId
 
 class Question(BaseModel):
     id: Optional[PyObjectId] = Field(default_factor=PyObjectId, alias='_id')
     q: str = Field(...)
-    a: str = Field(...)
+    a: Union[str, bool] = Field(...)
     d: List[int] = Field(...)
     c: str = Field(...)
     t: int = Field(...)

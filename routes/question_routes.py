@@ -33,11 +33,14 @@ StatHolder: Dict[str, UserStats] = {}
 async def questions(user: str, quiz: Optional[dict] = {}):
     domain = quiz.get("domain") or [1, 2]
     size = quiz.get("size") or 10
+    t = quiz.get("type")
     try:
         if domain[2] == 9:
             pipeline = [
                 {'$match': {'d': {'$eq': domain[:2]}}},
-                {'$sample': {'size': size}}
+                {'$match': {'t': t}},
+                {'$sample': {'size': size}},
+                
             ]
         elif domain[2] == 8:
             pipeline = [
@@ -47,7 +50,8 @@ async def questions(user: str, quiz: Optional[dict] = {}):
     except IndexError as e:
         pipeline = [
                 {'$match': {'d': {'$eq': domain}}},
-                {'$sample': {'size': size}}
+                {'$match': {'t': t}},
+                {'$sample': {'size': size}},
             ]
         logging.error(f"{e}")
     if quiz.get("s"):
@@ -65,7 +69,7 @@ async def questions(user: str, quiz: Optional[dict] = {}):
         question["a"] = ""
         question["_id"] = str(question["_id"])
 
-    logging.info(f"Total Questions Available {len(questions)}")
+    logging.info(f"Total Questions Available {len(questions)} for {domain} and {t}")
     return questions
 
 @router.post("/validate/{user}")
