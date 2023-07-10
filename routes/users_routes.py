@@ -33,6 +33,8 @@ async def login(data: dict):
                 "n": username,
                 "email_v": False,
                 "phone_v": False,
+                "sub": 0,
+                "sub_expiry": None,
             }
             result = await progress(userID)
             result = await USER_COLLECTION.insert_one(userInfo)

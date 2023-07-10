@@ -10,4 +10,4 @@ class User(BaseModel):
     phone: Optional[str] = None
     country: Optional[str] = None
     language: Optional[str] = None
-    subscripton: bool = False
+    subs: bool = False
