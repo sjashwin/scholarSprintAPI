@@ -7,6 +7,9 @@ router = APIRouter()
 
 @router.post("/login")
 async def login(data: dict):
+    if data.get("email") == "" or data.get("email") is None:
+        logging.error(f"Invlaid Email")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str("Invalid Email"))
     try:
         userEmail = data.get("email")
         userPhone = data.get("phone") or ""
@@ -21,6 +24,8 @@ async def login(data: dict):
             logging.info(f"User {username} Logged In Successfully")
             return { "status": status.HTTP_200_OK, "result": result_update.modified_count, "user": existing_data}
         else:
+            if userEmail == None or userEmail == "":
+                return {"status": status.HTTP_403_FORBIDDEN, "result": "", "user": ""}
             userID=data.get("userID")
             userInfo={
                 "id": userID, 
@@ -36,13 +41,14 @@ async def login(data: dict):
                 "sub": 0,
                 "sub_expiry": None,
             }
+            print("user", userInfo)
             result = await progress(userID)
             result = await USER_COLLECTION.insert_one(userInfo)
             userInfo["_id"] = str(userInfo["_id"])
             logging.info(f"New User {username} Logged In Successfully")
             return { "status": status.HTTP_200_OK, "result": str(result.inserted_id), "user": userInfo }
     except Exception as e:
-        logging.error(f"{e}")
+        logging.error(f"Error Logging In Or Signin Up: {e}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
 
 async def progress(userID):
