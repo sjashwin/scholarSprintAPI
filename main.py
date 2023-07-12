@@ -4,8 +4,6 @@ from starlette.middleware.sessions import SessionMiddleware
 from routes import invite_routes, ping, quiz_routes, question_routes, session_routes, users_routes, feedback_routes
 from routes import progress_routes, blog_routes, linkedin_routes, creator
 from routes import ping, quiz_routes, question_routes, session_routes, users_routes, feedback_routes, question_ws
-from watchers.newQuiz_watcher import QuizAdd_watcher
-import asyncio
 import logging
 
 logging.basicConfig(
