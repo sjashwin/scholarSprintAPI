@@ -2,4 +2,5 @@
 .env
 Spacefile
 test/.pytest_cache/*
-venv/
+.venv/
+__pycache__/

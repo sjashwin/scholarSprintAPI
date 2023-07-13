@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 from routes import invite_routes, ping, quiz_routes, question_routes, session_routes, users_routes, feedback_routes
-from routes import progress_routes, blog_routes, linkedin_routes, creator
+from routes import progress_routes, blog_routes, linkedin_routes, creator, room_ws
 from routes import ping, quiz_routes, question_routes, session_routes, users_routes, feedback_routes, question_ws
 import logging
 
@@ -40,6 +40,7 @@ app.include_router(blog_routes.router)
 app.include_router(linkedin_routes.router)
 app.include_router(creator.router)
 app.include_router(question_ws.router)
+app.include_router(room_ws.router)
 
 #@app.on_event("startup")
 #async def startup_event():
