@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Request, HTTPException, status
 from typing import List, Optional
 
 from pydantic import BaseModel, validator
@@ -77,7 +77,7 @@ async def validate(user: str, data: dict):
     if user not in StatHolder:
         return HTTPException(status_code=400, detail="Quiz has not started or is not available")
     document_id = data.get("document_id")
-    answer: str = data.get("answer")
+    answer = data.get("answer")
     
     # Get the user's session
     if not ObjectId.is_valid(document_id):
@@ -118,9 +118,10 @@ async def submit(user: str):
     # Get username from the session
     if user not in StatHolder:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Quiz has not started or is not available")
-    quID = [{str(question): 100} for question in StatHolder[user].result]
+    quID = [{str(question): 1} for question in StatHolder[user].result]
     stats = {
         "t": datetime.datetime.now().isoformat(),
+        "d": datetime.date.today().isoformat(),
         "qID": StatHolder[user].qid,
         "quID": quID,
         "r": StatHolder[user].score
