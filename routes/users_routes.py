@@ -40,7 +40,6 @@ async def login(data: dict):
                 "phone_v": False,
                 "sub": 0,
                 "sub_expiry": None,
-                "r": 1,
             }
             print("user", userInfo)
             result = await progress(userID)
