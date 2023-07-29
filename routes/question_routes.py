@@ -3,9 +3,10 @@ from typing import List, Optional
 
 from pydantic import BaseModel, validator
 from models.question import Question
-from mongo.mongo import QUESTION_COLLECTION, PROGRESS_COLLECTION
+from mongo.mongo import QUESTION_COLLECTION, PROGRESS_COLLECTION, QUIZ_COLLECTION
 from bson import ObjectId
-from typing import Dict
+from typing import Dict, Any
+from models.quiz import Quiz
 import spacy
 import random
 import datetime
@@ -62,8 +63,8 @@ async def questions(user: str, quiz: Optional[dict] = {}):
         pipeline[0]["$match"].update({'$text': {'$search': f'{quiz.get("q")}'}})
     questions: List[Question] = await QUESTION_COLLECTION.aggregate(pipeline).to_list(size)
     random.shuffle(questions)
-    StatHolder[user] = UserStats(name=user, questions=questions, qid=quiz["_id"])
-    # Convert _id field to string
+    StatHolder[user] = UserStats(name=user, questions=question, qid=quiz["_id"])
+    # Convert _id field to strings
 
     for question in questions:
         question["a"] = ""
@@ -144,3 +145,37 @@ async def check(answer: str, required: str):
     expected = nlp(required)
     similarity_score = answer.similarity(expected)
     return {"similarity": similarity_score}
+
+@router.get("/total-questions/{domain}")
+async def total(domain: int):
+    pipeline = [
+        {"$match": {"d": domain}},
+        {"$group": {
+            "_id": "$d",
+            "total": {"$sum": 1}
+        }},
+        {"$project": {
+            "_id": 0,
+            "subdomain": "$_id",
+            "total": 1
+        }}
+    ]
+    result = await QUESTION_COLLECTION.aggregate(pipeline).to_list(None)
+   
+    # Calculate the total number of questions for the main domain "d"
+    total_questions_domain = 0
+
+    for doc in result:
+        total_questions_domain += doc["total"]
+
+    # Create a dictionary to store subdomain counts
+    subdomain_counts = {"total": total_questions_domain}
+
+    for doc in result:
+        subdomain = str(doc["subdomain"])
+        total_questions = doc["total"]
+
+        # Update the subdomain_counts dictionary
+        subdomain_counts[subdomain] = total_questions
+
+    return subdomain_counts
