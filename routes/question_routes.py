@@ -3,10 +3,9 @@ from typing import List, Optional
 
 from pydantic import BaseModel, validator
 from models.question import Question
-from mongo.mongo import QUESTION_COLLECTION, PROGRESS_COLLECTION, QUIZ_COLLECTION
+from mongo.mongo import QUESTION_COLLECTION, PROGRESS_COLLECTION
 from bson import ObjectId
-from typing import Dict, Any
-from models.quiz import Quiz
+from typing import Dict
 import spacy
 import random
 import datetime
