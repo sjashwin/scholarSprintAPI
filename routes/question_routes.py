@@ -62,8 +62,8 @@ async def questions(user: str, quiz: Optional[dict] = {}):
         pipeline[0]["$match"].update({'$text': {'$search': f'{quiz.get("q")}'}})
     questions: List[Question] = await QUESTION_COLLECTION.aggregate(pipeline).to_list(size)
     random.shuffle(questions)
-    StatHolder[user] = UserStats(name=user, questions=question, qid=quiz["_id"])
-    # Convert _id field to strings
+    StatHolder[user] = UserStats(name=user, questions=questions, qid=quiz["_id"])
+    # Convert _id field to string
 
     for question in questions:
         question["a"] = ""
@@ -160,7 +160,7 @@ async def total(domain: int):
         }}
     ]
     result = await QUESTION_COLLECTION.aggregate(pipeline).to_list(None)
-   
+
     # Calculate the total number of questions for the main domain "d"
     total_questions_domain = 0
 
@@ -177,4 +177,11 @@ async def total(domain: int):
         # Update the subdomain_counts dictionary
         subdomain_counts[subdomain] = total_questions
 
-    return subdomain_counts
+    # Separate all the subdomains together into a list of dictionaries
+    subdomain_list = [
+        {"subdomain": subdomain, "total_questions": subdomain_counts[subdomain]}
+        for subdomain in subdomain_counts
+        if subdomain != "total"
+    ]
+
+    return {"total": total_questions_domain, "subdomains": subdomain_list}
