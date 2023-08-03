@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Request, HTTPException, status
 from datetime import date
 from mongo.mongo import USER_COLLECTION, PROGRESS_COLLECTION
+from bson import ObjectId
 import logging
 
 router = APIRouter()
@@ -53,3 +54,26 @@ async def progress(userID):
     }
     result = await PROGRESS_COLLECTION.insert_one(data)
     return str(result.inserted_id)
+
+@router.put("/updateUsername")
+async def update_username(data: dict):
+    try:
+        user_id = data.get("id")
+        new_username = data.get("name")
+        if not user_id or not new_username:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Both 'id' and 'name' fields are required.")
+        
+        user_id = ObjectId(user_id)    
+        existing_user = await USER_COLLECTION.find_one({"_id": user_id})
+        if existing_user:
+            result_update = await USER_COLLECTION.update_one({"_id": user_id}, {"$set": {"n": new_username}})
+            if result_update.modified_count > 0:
+                logging.info(f"Username for User ID {user_id} updated successfully.")
+                return {"status": "success", "message": "Username updated successfully."}
+            else:
+                return {"status": "error", "message": "Failed to update the username."}
+        else:
+            raise HTTPException(status_code=404, detail="User not found.")
+    except Exception as e:
+        logging.error(f"{e}")
+        raise HTTPException(status_code=500, detail=str(e))
