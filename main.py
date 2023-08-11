@@ -3,7 +3,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 from routes import invite_routes, ping, quiz_routes, question_routes, session_routes, users_routes, feedback_routes
 from routes import progress_routes, blog_routes, linkedin_routes, creator
-from routes import room_ws
 from watchers.newQuiz_watcher import QuizAdd_watcher
 import asyncio
 import logging
@@ -41,7 +40,6 @@ app.include_router(invite_routes.router)
 app.include_router(blog_routes.router)
 app.include_router(linkedin_routes.router)
 app.include_router(creator.router)
-app.include_router(room_ws.router)
 
 logging.info("Server Started Successfully.")
 

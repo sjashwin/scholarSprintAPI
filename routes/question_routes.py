@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Request, HTTPException, status
 from typing import List, Optional
 
 from pydantic import BaseModel, validator
@@ -77,7 +77,7 @@ async def validate(user: str, data: dict):
     if user not in StatHolder:
         return HTTPException(status_code=400, detail="Quiz has not started or is not available")
     document_id = data.get("document_id")
-    answer: str = data.get("answer")
+    answer = data.get("answer")
     
     # Get the user's session
     if not ObjectId.is_valid(document_id):
@@ -118,9 +118,10 @@ async def submit(user: str):
     # Get username from the session
     if user not in StatHolder:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Quiz has not started or is not available")
-    quID = [{str(question): 100} for question in StatHolder[user].result]
+    quID = [{str(question): 1} for question in StatHolder[user].result]
     stats = {
         "t": datetime.datetime.now().isoformat(),
+        "d": datetime.date.today().isoformat(),
         "qID": StatHolder[user].qid,
         "quID": quID,
         "r": StatHolder[user].score
@@ -143,3 +144,44 @@ async def check(answer: str, required: str):
     expected = nlp(required)
     similarity_score = answer.similarity(expected)
     return {"similarity": similarity_score}
+
+@router.get("/total-questions/{domain}")
+async def total(domain: int):
+    pipeline = [
+        {"$match": {"d": domain}},
+        {"$group": {
+            "_id": "$d",
+            "total": {"$sum": 1}
+        }},
+        {"$project": {
+            "_id": 0,
+            "subdomain": "$_id",
+            "total": 1
+        }}
+    ]
+    result = await QUESTION_COLLECTION.aggregate(pipeline).to_list(None)
+
+    # Calculate the total number of questions for the main domain "d"
+    total_questions_domain = 0
+
+    for doc in result:
+        total_questions_domain += doc["total"]
+
+    # Create a dictionary to store subdomain counts
+    subdomain_counts = {"total": total_questions_domain}
+
+    for doc in result:
+        subdomain = str(doc["subdomain"])
+        total_questions = doc["total"]
+
+        # Update the subdomain_counts dictionary
+        subdomain_counts[subdomain] = total_questions
+
+    # Separate all the subdomains together into a list of dictionaries
+    subdomain_list = [
+        {"subdomain": subdomain, "total_questions": subdomain_counts[subdomain]}
+        for subdomain in subdomain_counts
+        if subdomain != "total"
+    ]
+
+    return {"total": total_questions_domain, "subdomains": subdomain_list}
